@@ -31,4 +31,4 @@
   - 👟 **The Rise and Fall of the StepN Phenomenon** 
   - 🌉 **Cross-chain Bridge Infrastructure**
   - 👤 **The Legend of Satoshi Nakamoto**
-  - ⚡ **MEV**: Mempool, Flashbots, Jito and the hisoty
+  - ⚡ **MEV**: Mempool, Flashbots, Jito and the history
