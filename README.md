@@ -35,4 +35,4 @@
 
 ### 📅 Febrary 2026
   - 🛡️ **Damn Vulnerable DeFi**: All Challenges Solved (AK)
-    - 🔹 [CurvyPuppet Writeup](./writeups/ethernaut_UniqueNFT_better)
+    - 🔹 [CurvyPuppet Writeup](./writeups/CurvyPuppetWriteup.md)
