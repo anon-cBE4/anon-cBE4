@@ -32,3 +32,7 @@
   - 🌉 **Cross-chain Bridge Infrastructure**
   - 👤 **The Legend of Satoshi Nakamoto**
   - ⚡ **MEV**: Mempool, Flashbots, Jito and the history
+
+### 📅 Febrary 2026
+  - 🛡️ **Damn Vulnerable DeFi**: All Challenges Solved (AK)
+    - 🔹 [CurvyPuppet Writeup](./writeups/ethernaut_UniqueNFT_better)
