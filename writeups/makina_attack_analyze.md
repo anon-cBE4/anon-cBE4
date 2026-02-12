@@ -212,6 +212,81 @@ DUSDUSDC 池中，DUSD 是 Makina 专有的池，大约有 512 万 USDC 和 1123
 
 ![](images/makina_8.png)
 
+### 思考：这堆Weiroll数据是干什么的？
+
+<details><summary>Gemini：这一堆 Weiroll commands 是干什么的，我看不懂</summary>
+✦ Weiroll 的 commands 确实非常晦涩，它是一种专门设计的紧凑型虚拟机指令集。我将为你逐字节拆解，像读汇编代码一样读懂它。
+
+  Weiroll 指令是 bytes32 类型，每个指令（Command）都包含了以下信息：
+   1. Flag (1 byte): 执行模式（是 Call、DelegateCall 还是 StaticCall，是否利用返回值等）。
+   2. Target Index (1 byte): 调用哪个合约（索引指向 state 数组）。
+   3. Function Selector (4 bytes): 调用哪个函数（如 balanceOf 的哈希前4位）。
+   4. Input/Output Indices (变长): 参数从哪里拿，返回值存哪里。
+
+  ---
+
+  指令集逐条解析
+
+
+  Command 1: `0x70a08231 01 04 ff 00 00 00 00 04...`
+   * Selector: 0x70a08231 -> `balanceOf(address)`
+   * Flag: 0x00 -> CALL (标准调用)
+   * Target: 0x04 -> 对应 state[4]，即 MIM-3Crv LP / Convex Token 地址。
+   * Inputs: 指向 state 中的某个参数（可能是 Caliber 的地址）。
+   * Output: 0xff -> 将返回值压入 Weiroll 栈顶。
+   * 人话翻译：ConvexToken.balanceOf(Caliber_Address) -> stack[0] (数量)
+
+
+  Command 2: `0x6d5433e6 01 04 06 ff...`
+   * Selector: 0x6d5433e6 -> `rewardedBalanceOf` / `balanceOf` 变体。
+   * Target: 0x04 -> 同样是 Convex 相关合约。
+   * 人话翻译：这可能是在计算待领取的奖励余额，结果压入栈。
+
+
+  Command 3: `0xcc2b27d7 81 04 06 ff...` (核心攻击点)
+   * Selector: 0xcc2b27d7 -> `calc_withdraw_one_coin(uint256,int128)` (Curve 常用计算函数)。
+   * Target: 0x06 -> 对应 state[6]，即 MIM-3Crv Curve Pool 地址。
+   * Flag: 0x01 -> STATICCALL (只读调用)。
+   * Inputs:
+       * 0xff -> 从栈顶取值 (即 Command 1 查到的余额)。
+       * 0x05 -> state[5]，对应参数 0 (DAI 的索引)。
+   * 人话翻译：CurvePool.calc_withdraw_one_coin(amount=stack[0], i=0 (DAI)) -> stack[1] (DAI 价值)
+
+
+  Command 4, 5... (重复计算)
+   * 后续的指令（如 0x62de91e9...）是重复上述过程，分别计算如果退出为 USDC (i=1) 和 USDT (i=2) 的价值。
+   * Weiroll 允许循环或多重调用。
+
+
+  Command 9, 10, 11: `0xaa9a0912 01 05 04 08 ff...` (输出整理)
+   * Selector: 0xaa9a0912 -> 这是一个特殊的 Weiroll 内部指令或 Helper 函数，通常用于打包返回值。
+   * Logic: 它将之前计算出的栈顶数据（DAI 数量、USDC 数量、USDT 数量）依次取出，并按照 Caliber 要求的格式（bytes[]）打包。
+   * 人话翻译：return [stack[1] (DAI), stack[2] (USDC), stack[3] (USDT)]
+
+  ---
+
+
+  你为什么看不懂？ (Weiroll 的黑魔法)
+  Weiroll 的设计初衷就是为了节省 Gas 和 压缩 Calldata。它把复杂的合约调用逻辑压缩成了几个 bytes32。
+   * 它没有显式的 address，而是用 index 指向 state 数组。
+   * 它没有显式的变量名，而是用 0xff, 0xfe 等特殊字节表示“栈顶”、“栈底”。
+
+
+  攻击者是如何利用这堆乱码的？
+  攻击者精通 Weiroll 的编码规则。他发现协议的白名单里允许了 Command 3 (`calc_withdraw_one_coin`)。
+  这相当于协议给了他一把枪（Weiroll），并且允许他对着任意目标（Curve Pool）开火，只要那个目标在 state 列表里。
+
+
+  于是，他构造了这样一个脚本：
+   1. 查余额 (正常操作)。
+   2. 用 `calc_withdraw_one_coin` 算价值 (致命操作！)。
+   3. 打包返回。
+
+
+  当 Caliber 执行这堆 commands 时，它并不懂业务逻辑，它只是机械地执行：“去 Curve 问一下这个能换多少钱？” -> Curve 回答：“能换 1900 万！” ->
+
+  Caliber：“好，记账 1900 万。”
+</details>
 
 ### 思考：为什么任何人都能更新Makina的价值？
 
