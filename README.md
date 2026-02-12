@@ -36,3 +36,4 @@
 ### 📅 Febrary 2026
   - 🛡️ **Damn Vulnerable DeFi**: All Challenges Solved (AK)
     - 🔹 [CurvyPuppet Writeup](./writeups/CurvyPuppetWriteup.md)
+  - 💀 STRONGLY RECOMMEND：[Makina Attack Analyze](./writeups/makina_attack_analyze.md)
