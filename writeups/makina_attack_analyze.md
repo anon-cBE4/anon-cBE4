@@ -78,7 +78,9 @@ Bot C 是个狠人，它出价 99 ETH。
 在 tkmk 大佬的指点下，Bot 肯定是抄的其他人的作业，建议观测 block 附近的合约创建情况，Gemini 给我干好了，恰好只有2个创建合约。
 
 > Prompt：现在任务是web3链上侦探，告诉我eth主网的 24273360 ~ 24273362 block 创建了哪几个合约，tx 和 address 是什么
+> 
 > 24273361 0xc17bb57ab32b285b1edd43acbc52c816b65dc6ca9776938bd0fcf729b71de012 0xb7061aa5b7038c805291191bd62e9ab6a2226944
+> 
 > 24273361 0xad945d38ec5dc00f0310b6f22d19da3b8b5063b9f3e7efb38ca6a5cbc6385a39 0x2c19b916b29e5170f75628d690623dedcafeca4c
 
 第一个合约是 ERC20，第二个合约的code里恰好有攻击相关的常量地址。在线反编译的结果是 https://etherscan.io/address/0x2c19b916b29e5170f75628d690623dedcafeca4c ，看起来确实是 exp。
